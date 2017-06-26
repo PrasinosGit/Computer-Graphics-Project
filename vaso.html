@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <!-- Meta Etiquetas -->
+        <title>ModelApp</title>
+        <meta charset="utf-8" />
+        <style>
+            body, html{ 
+                margin:0;
+                padding:0;
+                overflow: hidden;
+                width:100%;
+                height:100%;
+            }
+            #menu{
+                margin:0;
+                padding:0;
+                list-style:none;
+                position:absolute;
+                margin-left:200px;
+                margin-top:80px;
+
+            }
+            #menu li{
+                margin-right:20px;
+                display:block;
+            }
+            #menu li a{
+                font-family:'Consolas',sans-serif;
+                color:black;
+                text-decoration: none;
+                transition:0.4s;
+                -moz-transition:0.4s;
+                -webkit-transition:0.4s;
+                font-size:10pt;
+            }
+             #menu li.active a{
+                font-family:'Consolas',sans-serif;
+                color:black;
+                text-decoration: none;
+                transition:0.4s;
+                -moz-transition:0.4s;
+                -webkit-transition:0.4s;
+                font-size:10pt;
+            }
+            #menu li.active:hover a{
+                font-family:'Consolas',sans-serif;
+                color:black;
+                text-decoration: none;
+                transition:0.4s;
+                -moz-transition:0.4s;
+                -webkit-transition:0.4s;
+                text-decoration: underline;
+                font-size:10pt;
+            }
+            #menu li a:hover{
+                font-family:'Consolas',sans-serif;
+                color:black;
+                text-decoration: underline;
+                transition:0.4s;
+                -moz-transition:0.4s;
+                -webkit-transition:0.4s;
+            }
+            
+            .parrafo-footer{
+                font-family:'Consolas',sans-serif;
+                color:black;
+                position:absolute;
+                bottom:40px;
+                left:700px;
+            }
+        </style>
+        <script type="text/javascript" src="Adaptador/jquery-1.10.2.min.js"></script>
+		<script type="text/javascript" src="Adaptador/three.min.js"></script>
+		<script type="text/javascript" src="Adaptador/Stats.js"></script>
+		<script type="text/javascript" src="Adaptador/dat.gui.min.js"></script>
+		<script type="text/javascript" src="Adaptador/OrbitControls.js"></script>
+        <script src="Adaptador/csg.js"></script>
+        <script src="Adaptador/ThreeCSG.js"></script>
+    </head>
+
+    <body>
+        <div id="Stats-output"></div>
+		<div id="render"></div>
+		<script type="text/javascript">
+		$(document).ready(function(){
+			$(function(){
+            var stats = initStats();
+            // Se inicializa la escena
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            // Se inicia el render
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setClearColorHex(0xffffff);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMapEnabled = true;
+            renderer.shadowMapType = THREE.PCFSoftShadowMap;
+            // Configuración de plano
+            var planeGeometry = new THREE.PlaneGeometry(60,40,1,1);
+            var planeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff, transparent:true, opacity:0});
+            var plane = new THREE.Mesh(planeGeometry,planeMaterial);
+            plane.receiveShadow = true;
+            // Rotación de plano
+            plane.rotation.x=-0.5*Math.PI;
+            plane.position.x = 15;
+            plane.position.y = 0;
+            plane.position.z = 0;
+            scene.add(plane);
+            // Posición del Plano (posición y rotación no es lo mismo)
+            camera.position.x = -30,50,false;
+            camera.position.y = 40;
+            camera.position.z = 30,50,false;
+            camera.lookAt(scene.position);
+            //controls = new THREE.OrbitControls( camera );
+            //controls.addEventListener( 'change', render );
+             // Luz de Ambiente
+            var ambientLight = new THREE.AmbientLight(0x6c6c6c);
+            scene.add(ambientLight);            
+            // As de Luz
+            var spotLight = new THREE.SpotLight( 0xffffff );
+            spotLight.position.set( 0, 40, 40 );
+            spotLight.castShadow = true;
+            scene.add( spotLight );
+            // Cilindro
+            var VasoPepsi = new THREE.Object3D();
+            var geometriaCilindro = new THREE.CylinderGeometry(11.5, 11, 40, 50, 50, true);
+            var textura = new THREE.ImageUtils.loadTexture( "texturas/pepsi.jpg" );
+            var materialCilindro = new THREE.MeshPhongMaterial({color: 0xffffff, side:THREE.DoubleSide});
+            materialCilindro.map = textura;
+            var cilindroFinal = new THREE.Mesh(geometriaCilindro, materialCilindro);
+            cilindroFinal.castShadow = true;
+            VasoPepsi.add(cilindroFinal);
+            // Toro
+            var geometriaToro = new THREE.TorusGeometry( 11.6, 0.4, 16, 100 );
+            var materialToro = new THREE.MeshPhongMaterial( { color: 0xffffff } );
+            var toroFinal = new THREE.Mesh( geometriaToro, materialToro );
+            toroFinal.rotation.x = Math.PI/2;
+            toroFinal.position.y = 20;
+            toroFinal.castShadow = true;
+            VasoPepsi.add( toroFinal );
+            var geometriaCirc = new THREE.CircleGeometry(11,50);
+            var matCirc = new THREE.MeshLambertMaterial({color: 0xffffff});
+            circFin = new THREE.Mesh(geometriaCirc, matCirc);
+            circFin.position.y = -19.5;
+            circFin.rotation.x = Math.PI/2;
+            VasoPepsi.add(circFin);
+            scene.add(VasoPepsi);
+            // Render
+            $("#render").append(renderer.domElement);
+             var controls = new function() {
+                this.Rotacion = 0.02;
+                this.Escalamiento = 1;
+                this.Traslacion_eje_x = 0;
+                this.Traslacion_eje_y = 0;
+                this.Traslacion_eje_z = 0;
+            }
+            var gui = new dat.GUI();
+            gui.add(controls, 'Rotacion',0,0.5);
+            gui.add(controls, 'Escalamiento',0.5,4);
+            gui.add(controls, 'Traslacion_eje_x',-40,40);
+            gui.add(controls, 'Traslacion_eje_y',-40,40);
+            gui.add(controls, 'Traslacion_eje_z',-40,40);
+            render();
+            var step = 0.03;
+            function render() {
+                stats.update();
+            	VasoPepsi.rotation.y += controls.Rotacion;
+                VasoPepsi.scale.x = controls.Escalamiento;
+                VasoPepsi.scale.y = controls.Escalamiento;
+                VasoPepsi.scale.z = controls.Escalamiento;
+                VasoPepsi.position.x = controls.Traslacion_eje_x;
+                VasoPepsi.position.y = controls.Traslacion_eje_y;
+                VasoPepsi.position.z = controls.Traslacion_eje_z;
+            	step = step + 0.1;      	 
+                //render using requestAnimationFrame
+                requestAnimationFrame(render);
+                renderer.render(scene, camera);
+            }
+            function initStats() {
+                var stats = new Stats();
+                stats.setMode(0); // 0: fps, 1: ms
+                // Align top-left
+                stats.domElement.style.position = 'absolute';
+                stats.domElement.style.left = '0px';
+                stats.domElement.style.top = '0px';
+                $("#Stats-output").append(stats.domElement);
+                return stats;
+            }
+        });
+	});
+    </script>	
+
+    </body>
+</html>
+
+    

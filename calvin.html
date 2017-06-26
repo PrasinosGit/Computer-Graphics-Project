@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <!-- Meta Etiquetas -->
+        <title>ModelApp</title>
+        <meta charset="utf-8" />
+    
+        
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta property="og:title" content="ModelApp: Modelado en 3D" />
+        <meta property="og:type" content="website" />
+        <style>
+            body, html{ 
+                margin:0;
+                padding:0;
+                overflow: hidden;
+                width:100%;
+                height:100%;
+            }
+            #menu{
+                margin:0;
+                padding:0;
+                list-style:none;
+                position:absolute;
+                margin-left:200px;
+                margin-top:80px;
+
+            }
+            #menu li{
+                margin-right:20px;
+                display:block;
+            }
+            #menu li a{
+                font-family:'Consolas',sans-serif;
+                color:black;
+                text-decoration: none;
+                transition:0.4s;
+                -moz-transition:0.4s;
+                -webkit-transition:0.4s;
+                font-size:10pt;
+            }
+             #menu li.active a{
+                font-family:'Consolas',sans-serif;
+                color:black;
+                text-decoration: none;
+                transition:0.4s;
+                -moz-transition:0.4s;
+                -webkit-transition:0.4s;
+                font-size:10pt;
+            }
+            #menu li.active:hover a{
+                font-family:'Consolas',sans-serif;
+                color:black;
+                text-decoration: none;
+                transition:0.4s;
+                -moz-transition:0.4s;
+                -webkit-transition:0.4s;
+                text-decoration: underline;
+                font-size:10pt;
+            }
+            #menu li a:hover{
+                font-family:'Consolas',sans-serif;
+                color:black;
+                text-decoration: underline;
+                transition:0.4s;
+                -moz-transition:0.4s;
+                -webkit-transition:0.4s;
+            }
+            .parrafo-footer{
+                font-family:'Consolas',sans-serif;
+                color:black;
+                position:absolute;
+                bottom:40px;
+                left:700px;
+            }
+        </style>
+        <script type="text/javascript" src="Adaptador/jquery-1.10.2.min.js"></script>
+		<script type="text/javascript" src="Adaptador/three.min.js"></script>
+		<script type="text/javascript" src="Adaptador/Stats.js"></script>
+		<script type="text/javascript" src="Adaptador/dat.gui.min.js"></script>
+		<script type="text/javascript" src="Adaptador/OrbitControls.js"></script>
+    </head>
+
+    <body>
+        <div id="Stats-output"></div>
+    		<div id="render"></div>
+		<script type="text/javascript">
+		$(document).ready(function(){
+			$(function(){
+            var stats = initStats();
+            // Se inicializa la escena
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            // Se inicia el render
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setClearColorHex(0xffffff);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMapEnabled = true;
+            renderer.shadowMapType = THREE.PCFSoftShadowMap;
+            // Configuración de plano
+            var planeGeometry = new THREE.PlaneGeometry(60,40,1,1);
+            var planeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff, transparent:true, opacity:0});
+            var plane = new THREE.Mesh(planeGeometry,planeMaterial);
+            plane.receiveShadow = true;
+            
+            // Rotación de plano
+            plane.rotation.x=-0.5*Math.PI;
+            plane.position.x = 15;
+            plane.position.y = 0;
+            plane.position.z = 0;
+            scene.add(plane);
+            // Posición del Plano 
+            camera.position.x = -30;
+            camera.position.y = 40;
+            camera.position.z = 30;
+            camera.lookAt(scene.position);
+             // Luz de Ambiente
+            var ambientLight = new THREE.AmbientLight(0x6c6c6c);
+            scene.add(ambientLight);            
+
+            // As de Luz
+            var spotLight = new THREE.SpotLight( 0xffffff );
+            spotLight.position.set( 0, 20, 40 );
+            spotLight.castShadow = true;
+            scene.add( spotLight );
+
+            // Esfera
+            var geometriaCubo = new THREE.CubeGeometry(14,50,20);
+            var Textura_final = [
+                new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture( 'texturas/calvin1.jpg' ) }),
+                new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture( 'texturas/calvin2.jpg' ) }),
+                new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture( 'texturas/calvin2.jpg' ) }),
+                new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture( 'texturas/calvin2.jpg' ) }),
+                new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture( 'texturas/calvin2.jpg' ) }),
+                new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture( 'texturas/calvin2.jpg' ) })
+            ];
+
+            var Textura_Cubo_Lana = new THREE.MeshFaceMaterial(Textura_final);
+            // Final
+            var Cubo_Hielo = new THREE.Mesh(geometriaCubo, Textura_Cubo_Lana);
+            
+            Cubo_Hielo.castShadow = true;
+            scene.add(Cubo_Hielo);
+            // Render
+            $("#render").append(renderer.domElement);
+
+            var controls = new function() {
+                this.Rotacion = 0.02;
+                this.Escalamiento = 1;
+                this.Traslacion_eje_x = 0;
+                this.Traslacion_eje_y = 0;
+                this.Traslacion_eje_z = 0;
+            }
+
+            var gui = new dat.GUI();
+            gui.add(controls, 'Rotacion',0,0.5);
+            gui.add(controls, 'Escalamiento',0.5,4);
+            gui.add(controls, 'Traslacion_eje_x',-40,40);
+            gui.add(controls, 'Traslacion_eje_y',-40,40);
+            gui.add(controls, 'Traslacion_eje_z',-40,40);
+
+            render();
+            var step = 0.03;
+            function render() {
+                stats.update();
+            	Cubo_Hielo.rotation.y += controls.Rotacion; 
+            	
+                Cubo_Hielo.scale.x = controls.Escalamiento;
+                Cubo_Hielo.scale.y = controls.Escalamiento;
+                Cubo_Hielo.scale.z = controls.Escalamiento; 
+                Cubo_Hielo.position.x = controls.Traslacion_eje_x;
+                Cubo_Hielo.position.y = controls.Traslacion_eje_y;
+                Cubo_Hielo.position.z = controls.Traslacion_eje_z;
+                step = step + 0.1;      	 
+                //render using requestAnimationFrame
+                requestAnimationFrame(render);
+                renderer.render(scene, camera);
+            }
+            function initStats() {
+                var stats = new Stats();
+                stats.setMode(0); // 0: fps, 1: ms
+                // Align top-left
+                stats.domElement.style.position = 'absolute';
+                stats.domElement.style.left = '0px';
+                stats.domElement.style.top = '0px';
+                $("#Stats-output").append(stats.domElement);
+                return stats;
+            }
+        });
+	});
+    </script>	
+
+    </body>
+</html>

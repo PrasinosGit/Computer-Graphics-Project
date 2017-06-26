@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <title>ModelApp</title>
+        <meta charset="utf-8" />
+        <meta name="author" content="Nico, Ana, Felipe"/>
+        <style>
+			body {
+				color: #000;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+				font-weight: bold;
+
+				background-color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				color:#000;
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+
+			}
+        </style>
+        <script type="text/javascript" src="Adaptador/jquery-1.10.2.min.js"></script>
+		<script type="text/javascript" src="Adaptador/three.min.js"></script>
+		<script type="text/javascript" src="Adaptador/Stats.js"></script>
+		<script type="text/javascript" src="Adaptador/dat.gui.min.js"></script>
+		<script type="text/javascript" src="Adaptador/OrbitControls.js"></script>
+		<script src="Adaptador/Detector.js"></script>
+		<script src="Adaptador/libs/stats.min.js"></script>
+    </head>
+
+    <body>
+        <div id="Stats-output"></div>
+		<div id="render"></div>
+		<script type="text/javascript">
+
+		$(document).ready(function(){
+			$(function(){
+
+            var stats = initStats();           
+            // Se inicializa la escena
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            // Se inicia el render
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setClearColorHex(0xFFFFFF);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMapEnabled = true;
+            renderer.shadowMapType = THREE.PCFSoftShadowMap;
+            // Configuración de plano
+            var planeGeometry = new THREE.PlaneGeometry(60,40,1,1);
+            var planeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff, transparent:true, opacity:0});
+            var plane = new THREE.Mesh(planeGeometry,planeMaterial);
+            plane.receiveShadow = true;
+            
+            // Rotación de plano
+            plane.rotation.x=-0.5*Math.PI;
+            plane.position.x = 15;
+            plane.position.y = 0;
+            plane.position.z = 0;
+            scene.add(plane);
+
+            // Posición del Plano
+            camera.position.x = -30;
+            camera.position.y = 40;
+            camera.position.z = 30;
+            camera.lookAt(scene.position);
+
+       		controles = new THREE.OrbitControls( camera );
+            controles.addEventListener( 'change', render );
+
+             // Luz de Ambiente
+            var ambientLight = new THREE.AmbientLight(0x3c3c3c);
+            scene.add(ambientLight);            
+            // As de Luz
+            var spotLight = new THREE.SpotLight( 0xffffff );
+            spotLight.position.set( 20, 60, 40 );
+            spotLight.castShadow = true;
+            scene.add( spotLight );
+            // As de Luz
+            var spotLight3 = new THREE.SpotLight( 0xffffff );
+            spotLight3.position.set( -30, -20, 0 );
+            spotLight3.castShadow = true;
+            scene.add( spotLight3 );
+            // As de Luz
+            var spotLight2 = new THREE.SpotLight( 0xffffff );
+            spotLight2.position.set( 40, 70, 40 );
+            spotLight2.castShadow = true;
+            scene.add( spotLight2 );
+            // Esfera
+            var geometriaEsfera = new THREE.SphereGeometry(12, 30, 30);
+            var textura = new THREE.ImageUtils.loadTexture( "texturas/tierra.jpg" );
+            // Material Esfera
+            var materialEsfera = new THREE.MeshPhongMaterial();
+            materialEsfera.map = textura;
+            // Final
+            var planeta_tierra = new THREE.Mesh(geometriaEsfera, materialEsfera);
+            planeta_tierra.position.x = 0;
+            planeta_tierra.position.y = 0;
+            planeta_tierra.position.z = 0;
+            planeta_tierra.rotation.x = -0.8;
+            planeta_tierra.castShadow = true;
+            scene.add(planeta_tierra);
+            // Render
+            $("#render").append(renderer.domElement);
+
+             var controls = new function() {
+                this.Escalamiento = 1;
+                this.Traslacion_eje_x = 0;
+                this.Traslacion_eje_y = 0;
+                this.Traslacion_eje_z = 0;
+            }
+
+            var gui = new dat.GUI();
+            gui.add(controls, 'Escalamiento',0.5,4);
+            gui.add(controls, 'Traslacion_eje_x',-40,40);
+            gui.add(controls, 'Traslacion_eje_y',-40,40);
+            gui.add(controls, 'Traslacion_eje_z',-40,40);
+
+            render();
+            animate();
+            var step = 0.03;
+            function render() {
+                stats.update();
+                planeta_tierra.scale.x = controls.Escalamiento;
+                planeta_tierra.scale.y = controls.Escalamiento;
+                planeta_tierra.scale.z = controls.Escalamiento;
+                planeta_tierra.position.x = controls.Traslacion_eje_x;
+                planeta_tierra.position.y = controls.Traslacion_eje_y;
+                planeta_tierra.position.z = controls.Traslacion_eje_z;
+                
+            	step = step + 0.1;      	 
+                //render using requestAnimationFrame
+                requestAnimationFrame(render);
+                renderer.render(scene, camera);
+            }
+            function initStats() {
+                var stats = new Stats();
+                stats.setMode(0); // 0: fps, 1: ms
+                // Align top-left
+                stats.domElement.style.position = 'absolute';
+                stats.domElement.style.left = '0px';
+                stats.domElement.style.top = '0px';
+                $("#Stats-output").append(stats.domElement);
+                return stats;
+            }   
+            function animate() {
+                requestAnimationFrame( animate );
+                planeta_tierra.rotation.x += 0.0;
+                planeta_tierra.rotation.y += 0.01;
+                renderer.render( scene, camera );
+
+            }           
+        });
+	});
+    </script>	
+
+    </body>
+</html>
